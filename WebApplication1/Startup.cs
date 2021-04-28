@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using EventBusCore;
 using EventBusCore.DependencyManagement;
+using EventBusCore.Events;
 using EventBusCore.Handler;
 using EventBusCore.HandlerManager;
 using Microsoft.AspNetCore.Builder;
@@ -71,14 +72,47 @@ namespace WebApplication1
             builder.RegisterType<EventBus>().As<IEventBus>();
             builder.RegisterType<EventHandlerManager>().As<IEventHandlerManager>();
             //builder.RegisterType<ShowHandler>();
+            
+            
 
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var types = typeof(DataHandler);
+            var allHanlder = AppDomain.CurrentDomain.GetAssemblies()
+                 .Where(o => !o.IsDynamic)
+                 .SelectMany(o => o.ExportedTypes)
+                 .Where(o => o.BaseType != null
+                         && o.BaseType.IsGenericType
+                         && o.BaseType.GetGenericTypeDefinition() == typeof(AllMethodsHandler<>))
+                 .ToList();
+            var hanlderStep = new List<string>()
+            {
+                "EventKeyStartHanlder",
+                "EventKeyStopHandler" 
+            };
 
-           // builder.RegisterGeneric(typeof(AllMethodsHandler<>));
-            builder.RegisterType(typeof(DataHandler)).As(types.BaseType);
+            foreach (var handler in allHanlder)
+            {
+                var eventBase = handler.BaseType.GenericTypeArguments.FirstOrDefault(o => typeof(IEventBase).IsAssignableFrom(o));
+                if (eventBase != null)
+                {
+                    builder.RegisterType(handler).As(handler.BaseType);
+                    var handlers = handler.BaseType.GetNestedTypes()
+                                   .Where(o => o.IsGenericType
+                                            && o.GetInterfaces().Any(x => x.IsGenericType
+                                                                       && x.GetGenericTypeDefinition() == typeof(IEventHandler<>))
+                                    );
+
+                    hanlderStep.ForEach(step =>
+                   {
+                       var hanlderType = handlers.First(o => o.Name == step);
+                       builder.RegisterType(hanlderType.MakeGenericType(eventBase));
+                   });
+                }
+            }
+
+
+            // builder.RegisterGeneric(typeof(AllMethodsHandler<>));
+            /*builder.RegisterType(typeof(DataHandler)).As(types.BaseType);
             builder.RegisterType<DataHandler.EventKeyStartHanlder>();
-            builder.RegisterType<DataHandler.EventKeyStopHandler>();
+            builder.RegisterType<DataHandler.EventKeyStopHandler>();*/
             
         }
 
