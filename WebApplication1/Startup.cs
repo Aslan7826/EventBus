@@ -14,9 +14,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StartEventBusTest;
 using StartEventBusTest.EventBusSet;
+using StartEventBusTest.Handler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace WebApplication1
@@ -68,7 +70,16 @@ namespace WebApplication1
             builder.RegisterType<EventBusRegistrar>().As<IEventBusRegistrar>();
             builder.RegisterType<EventBus>().As<IEventBus>();
             builder.RegisterType<EventHandlerManager>().As<IEventHandlerManager>();
-            builder.RegisterType<ShowHandler>();
+            //builder.RegisterType<ShowHandler>();
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var types = typeof(DataHandler);
+
+           // builder.RegisterGeneric(typeof(AllMethodsHandler<>));
+            builder.RegisterType(typeof(DataHandler)).As(types.BaseType);
+            builder.RegisterType<DataHandler.EventKeyStartHanlder>();
+            builder.RegisterType<DataHandler.EventKeyStopHandler>();
+            
         }
 
 

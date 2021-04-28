@@ -4,6 +4,7 @@ using System.Text;
 using EventBusCore;
 using EventBusCore.DependencyManagement;
 using StartEventBusTest.EventBusSet;
+using StartEventBusTest.Handler;
 
 namespace StartEventBusTest
 {
@@ -16,7 +17,9 @@ namespace StartEventBusTest
         }
         public void Do()
         {
-            _IEventBus.Subscribe<ShowEvent, ShowHandler>(EventKey.Start,1);
+            //_IEventBus.Subscribe<ShowEvent, ShowHandler>(EventKey.Start,1);
+            _IEventBus.Subscribe<ShowEvent, DataHandler.EventKeyStartHanlder>(EventKey.Start,1);
+            _IEventBus.Subscribe<ShowEvent, DataHandler.EventKeyStopHandler>(EventKey.Stop,1);
 
         }
     }
