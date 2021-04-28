@@ -22,7 +22,14 @@ namespace EventBusCore
         bool Subscribe<TEvent, TEventHandler>(Enum enumKey,  int order)
             where TEvent : IEventBase
             where TEventHandler : IEventHandler<TEvent>;
-
+        /// <summary>
+        /// 增加一個事件的對象與其要處發的事件
+        /// </summary>
+        /// <param name="eventType">事件的對象</typeparam>
+        /// <param name="eventHandlerType">要處發的事件</typeparam>
+        /// <param name="enumKey">事件的前中後</param>
+        /// <returns></returns>
+        public bool Subscribe(Type eventType, Type eventHandlerType, Enum enumKey, int order);
         /// <summary>
         /// 移除一個對象與其Handler  ,order 指定排序 ,若沒有則刪除全部指定的Handler
         /// </summary>
@@ -33,7 +40,14 @@ namespace EventBusCore
         bool Unsubscribe<TEvent, TEventHandler>(Enum enumKey, int? order = null)
             where TEvent : IEventBase
             where TEventHandler : IEventHandler<TEvent>;
-
+        /// <summary>
+        /// 移除一個事件的對象要處發的事件
+        /// </summary>
+        /// <typeparam name="TEvent">事件的對象</typeparam>
+        /// <typeparam name="TEventHandler">要移除的事件</typeparam>
+        ///  <param name="eventStepType">事件的前中後</param>
+        /// <returns></returns>
+        public bool Unsubscribe(Type eventType, Type eventHandlerType, Enum enumKey, int? order = null);
         /// <summary>
         /// 發行動作
         /// 有執行成功回傳true 

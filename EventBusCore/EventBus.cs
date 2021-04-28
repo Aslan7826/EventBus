@@ -61,7 +61,7 @@ namespace EventBusCore
         /// </summary>
         /// <typeparam name="TEvent">事件的對象</typeparam>
         /// <typeparam name="TEventHandler">要處發的事件</typeparam>
-        /// <param name="eventStepType">事件的前中後</param>
+        /// <param name="enumKey">事件的前中後</param>
         /// <returns></returns>
         public bool Subscribe<TEvent, TEventHandler>(Enum enumKey,  int order)
             where TEvent : IEventBase
@@ -69,6 +69,22 @@ namespace EventBusCore
         {
             _IEventHandlerManager.EventEnumKey = GetEnumKey(enumKey);
             return _IEventHandlerManager.AddSubscription<TEvent, TEventHandler>(order);
+        }
+        /// <summary>
+        /// 增加一個事件的對象與其要處發的事件
+        /// </summary>
+        /// <param name="eventType">事件的對象</typeparam>
+        /// <param name="eventHandlerType">要處發的事件</typeparam>
+        /// <param name="enumKey">事件的前中後</param>
+        /// <returns></returns>
+        public bool Subscribe(Type eventType,Type eventHandlerType,Enum enumKey,int order) 
+        {
+            if( CheckEventType(eventType) && CheckEventHandlerType(eventHandlerType)) 
+            {
+                _IEventHandlerManager.EventEnumKey = GetEnumKey(enumKey);
+                 return _IEventHandlerManager.AddSubscription(eventType, eventHandlerType,order);
+            }
+            return false;
         }
         /// <summary>
         /// 移除一個事件的對象要處發的事件
@@ -84,7 +100,22 @@ namespace EventBusCore
             _IEventHandlerManager.EventEnumKey = GetEnumKey(enumKey);
             return _IEventHandlerManager.RemoveSubscription<TEvent, TEventHandler>(order);
         }
-
+        /// <summary>
+        /// 移除一個事件的對象要處發的事件
+        /// </summary>
+        /// <typeparam name="TEvent">事件的對象</typeparam>
+        /// <typeparam name="TEventHandler">要移除的事件</typeparam>
+        ///  <param name="eventStepType">事件的前中後</param>
+        /// <returns></returns>
+        public bool Unsubscribe(Type eventType,Type eventHandlerType,Enum enumKey, int? order = null)
+        {
+            if(CheckEventType(eventType) && CheckEventHandlerType(eventHandlerType)) 
+            {
+                _IEventHandlerManager.EventEnumKey = GetEnumKey(enumKey);
+                return _IEventHandlerManager.RemoveSubscription(eventType,eventHandlerType,order);
+            }
+            return false;
+        }
         /// <summary>
         /// 移除該Event 下所有的Handler
         /// </summary>
@@ -112,6 +143,17 @@ namespace EventBusCore
         private string GetEnumKey(Enum enumKey)
         {
             return $"{enumKey}";
+        }
+
+
+        private bool CheckEventType(Type eventType) 
+        {
+            return typeof(IEventBase).IsAssignableFrom(eventType);
+        }
+        private bool CheckEventHandlerType(Type handlerType) 
+        {
+            return handlerType.GetInterfaces()
+                   .Any(o => o.IsGenericType && o.GetGenericTypeDefinition() == typeof(IEventHandler<>));
         }
     }
 }

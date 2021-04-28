@@ -38,6 +38,29 @@ namespace EventBusCore.HandlerManager
                 return _eventHandlers.TryAdd(eventKey, new HashSet<EventHandlerType>() { addHandler });
             }
         }
+        /// <summary>
+        /// 增加Handler
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="eventHandlerType"></param>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public bool AddSubscription(Type eventType,Type eventHandlerType,int order) 
+        {
+
+            var eventKey = GetEventKey(eventType);
+            var addHandler = new EventHandlerType() { Order = order, EventHandlerTypes = eventHandlerType };
+            if (_eventHandlers.ContainsKey(eventKey))
+            {
+                return _eventHandlers[eventKey].Add(addHandler);
+            }
+            else
+            {
+                return _eventHandlers.TryAdd(eventKey, new HashSet<EventHandlerType>() { addHandler });
+            }
+        }
+
+
 
         /// <summary>
         /// 取出所有能用的Handler
@@ -99,6 +122,34 @@ namespace EventBusCore.HandlerManager
             return false;
         }
 
+
+        /// <summary>
+        /// 移除該Event 底下Handler 有傳入order 則指定order,沒傳入則刪除全部同樣的Handler
+        /// </summary>
+        /// <typeparam name="TEvent"></typeparam>
+        /// <typeparam name="TEventHandler"></typeparam>
+        ///<param name="order">傳入排序</param>
+        /// <returns></returns>
+        public bool RemoveSubscription(Type eventType,Type eventHandlerType,int? order = null)
+            
+        {
+            if (_eventHandlers.Count == 0)
+                return false;
+            var eventKey = GetEventKey(eventType);
+            if (_eventHandlers.ContainsKey(eventKey))
+            {
+                Predicate<EventHandlerType> bool1 = o => o.EventHandlerTypes == eventHandlerType;
+                var select = bool1;
+                if (order.HasValue)
+                {
+                    Predicate<EventHandlerType> bool2 = o => o.Order == order.Value;
+                    select = o => bool1(o) && bool2(o);
+                }
+                return _eventHandlers[eventKey].RemoveWhere(select) > 0;
+            }
+            return false;
+        }
+
         /// <summary>
         /// 移除該Event 下所有的Handler
         /// </summary>
@@ -134,6 +185,15 @@ namespace EventBusCore.HandlerManager
         public string GetEventKey<TEvent>() where TEvent : IEventBase
         {
             return $"{EventEnumKey}_{typeof(TEvent).FullName}";
+        }
+        /// <summary>
+        /// 取得EventKey
+        /// </summary>
+        /// <typeparam name="TEvent"></typeparam>
+        /// <returns></returns>
+        public string GetEventKey(Type type)
+        {
+            return $"{EventEnumKey}_{type.FullName}";
         }
         /// <summary>
         /// 指定的字典開頭
