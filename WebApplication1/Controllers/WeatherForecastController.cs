@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using StartEventBusTest.EventBusSet;
+using StartEventBusTest.Handler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,13 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public void Get()
         {
-             _IEventBus.Publish(new ShowEvent() { Id = 1 }, EventKey.Start);
+            var eventObj = new ShowEvent() { Id = 1 };
+
+            //var data = new DataHandler().Start(eventObj); 
+             
+
+            _IEventBus.Publish(eventObj, EventKey.Start);
+            _IEventBus.Publish(eventObj, EventKey.Stop);
         }
     }
 }
